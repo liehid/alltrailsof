@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Header from "./components/Header";
 import ArticleModal from "./components/ArticleModal";
+import AnnouncementPopup from "./components/AnnouncementPopup";
 import TrailsDrawer from "./components/TrailsDrawer";
 import HomePage from "./components/HomePage";
 import EditPage from "./components/EditPage";
@@ -45,6 +46,7 @@ export default function App() {
 
   return (
     <div style={{ minHeight:"100vh", background:"#fff" }}>
+      <AnnouncementPopup />
       {notif && <div style={{ position:"fixed", top:20, left:"50%", transform:"translateX(-50%)", background:"#111", color:"#fff", padding:"10px 22px", fontSize:9, fontFamily:"'Cormorant Garamond',serif", letterSpacing:"0.16em", zIndex:999, whiteSpace:"nowrap" }}>{notif}</div>}
       {reading      && <ArticleModal article={reading} onClose={() => setReading(null)} isMobile={isMobile} />}
       {showMyTrails && <TrailsDrawer saved={saved} toggle={toggle} onClose={() => setShowMyTrails(false)} isMobile={isMobile} />}
