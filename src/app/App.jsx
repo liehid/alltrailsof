@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Header from "./components/Header";
 import ArticleModal from "./components/ArticleModal";
+import ArticlePage from "./components/ArticlePage";
 import AnnouncementPopup from "./components/AnnouncementPopup";
 import TrailDetailPage from "./components/TrailDetailPage";
 import TrailsDrawer from "./components/TrailsDrawer";
@@ -15,7 +16,7 @@ import "./styles.css";
 // ── APP ───────────────────────────────────────────────
 export default function App() {
   const [page,          setPage]         = useState("home");
-  const [reading,       setReading]      = useState(null);
+  const [reading,       setReading]      = useState(null);   // { type:"article"|"trail", ...data }
   const [showMyTrails,  setShowMyTrails] = useState(false);
   const [saved,         setSaved]        = useState([]);
   const [expanded,      setExpanded]     = useState(null);
@@ -29,13 +30,18 @@ export default function App() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
+  // reading이 열려 있으면 스크롤을 맨 위로
+  useEffect(() => {
+    if (reading) window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [reading]);
+
   const isSaved = id => saved.some(t => t.id === id);
   const toggle  = item => {
     if (isSaved(item.id)) { setSaved(s => s.filter(t => t.id !== item.id)); flash("Removed from My Trails"); }
     else { setSaved(s => [...s, item]); flash("Saved to My Trails ✦"); }
   };
   const flash = msg => { setNotif(msg); setTimeout(() => setNotif(null), 2000); };
-  const nav   = id => { setPage(id); window.scrollTo({ top:0, behavior:"smooth" }); };
+  const nav   = id  => { setPage(id); setReading(null); window.scrollTo({ top: 0, behavior: "smooth" }); };
 
   const catId       = page.startsWith("cat:") ? page.slice(4) : null;
   const catLabel    = catId ? NAV_CATS.find(n => n.id === catId)?.label : null;
@@ -45,36 +51,107 @@ export default function App() {
 
   const shared = { isSaved, toggle, expanded, setExpanded, setReading, isMobile, nav };
 
+  // ── 독립 페이지 (Header/Footer 없이 풀스크린) ──
+  if (reading?.type === "article") {
+    return (
+      <ArticlePage
+        article={reading}
+        onClose={() => setReading(null)}
+        isMobile={isMobile}
+      />
+    );
+  }
+
+  if (reading?.type === "trail") {
+    return (
+      <TrailDetailPage
+        trail={reading}
+        onClose={() => setReading(null)}
+        isMobile={isMobile}
+      />
+    );
+  }
+
+  // ── 메인 레이아웃 ──
   return (
-    <div style={{ minHeight:"100vh", background:"#fff" }}>
-      {notif && <div style={{ position:"fixed", top:20, left:"50%", transform:"translateX(-50%)", background:"#111", color:"#fff", padding:"10px 22px", fontSize:9, fontFamily:"'Cormorant Garamond',serif", letterSpacing:"0.16em", zIndex:999, whiteSpace:"nowrap" }}>{notif}</div>}
-      {reading && reading.type === "article" && <ArticleModal article={reading} onClose={() => setReading(null)} isMobile={isMobile} />}
-      {reading && reading.type === "trail"   && <TrailDetailPage trail={reading} onClose={() => setReading(null)} isMobile={isMobile} />}
-      {showMyTrails && <TrailsDrawer saved={saved} toggle={toggle} onClose={() => setShowMyTrails(false)} isMobile={isMobile} />}
+    <div style={{ minHeight: "100vh", background: "#fff" }}>
 
-      <Header activeCatNav={activeCatNav} nav={nav} saved={saved} setShowMyTrails={setShowMyTrails} isMobile={isMobile} />
+      {/* 알림 토스트 */}
+      {notif && (
+        <div style={{
+          position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)",
+          background: "#111", color: "#fff", padding: "10px 22px",
+          fontSize: 9, fontFamily: "'Cormorant Garamond',serif",
+          letterSpacing: "0.16em", zIndex: 999, whiteSpace: "nowrap"
+        }}>
+          {notif}
+        </div>
+      )}
 
+      {/* My Trails 드로어 */}
+      {showMyTrails && (
+        <TrailsDrawer
+          saved={saved}
+          toggle={toggle}
+          onClose={() => setShowMyTrails(false)}
+          isMobile={isMobile}
+        />
+      )}
+
+      <Header
+        activeCatNav={activeCatNav}
+        nav={nav}
+        saved={saved}
+        setShowMyTrails={setShowMyTrails}
+        isMobile={isMobile}
+      />
+
+      {/* 페이지 라우팅 */}
       {page === "home"  && <HomePage {...shared} />}
-      {page === "edit"  && <EditPage {...shared} />}
+      {page === "edit"  && <EditPage  {...shared} />}
       {page === "trail" && <TrailPage {...shared} />}
-      {catId && <CatPage catId={catId} catLabel={catLabel} catArticles={catArticles} catTrails={catTrails} {...shared} />}
+      {catId && (
+        <CatPage
+          catId={catId}
+          catLabel={catLabel}
+          catArticles={catArticles}
+          catTrails={catTrails}
+          {...shared}
+        />
+      )}
 
+      {/* 푸터 */}
       {!isMobile && (
-        <footer style={{ borderTop:"1px solid #e8e8e8", padding:"32px 60px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-          <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:16, fontWeight:600, letterSpacing:"0.2em", color:"#111" }}>ATO</div>
-          <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:8, letterSpacing:"0.2em", color:"#ccc", textTransform:"uppercase" }}>콘텐츠로 시작하는 한국 여행</div>
-          <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:8, color:"#ccc" }}>© 2025 alltrailsof.com</div>
+        <footer style={{
+          borderTop: "1px solid #e8e8e8", padding: "32px 60px",
+          display: "flex", justifyContent: "space-between", alignItems: "center"
+        }}>
+          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, fontWeight: 600, letterSpacing: "0.2em", color: "#111" }}>ATO</div>
+          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 8, letterSpacing: "0.2em", color: "#ccc", textTransform: "uppercase" }}>콘텐츠로 시작하는 한국 여행</div>
+          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 8, color: "#ccc" }}>© 2025 alltrailsof.com</div>
         </footer>
       )}
 
+      {/* 모바일 하단 네비게이션 */}
       {isMobile && (
-        <nav style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:480, background:"#fff", borderTop:"1px solid #e8e8e8", display:"flex", zIndex:300 }}>
-          {[["home","◉","Home"],["edit","✎","The Edit"],["trail","✦","All Trails"],["mytrails","◈","My Trails"]].map(([id,icon,label]) => (
+        <nav style={{
+          position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
+          width: "100%", maxWidth: 480, background: "#fff",
+          borderTop: "1px solid #e8e8e8", display: "flex", zIndex: 300
+        }}>
+          {[["home","◉","Home"],["edit","✎","The Edit"],["trail","✦","All Trails"],["mytrails","◈","My Trails"]].map(([id, icon, label]) => (
             <button key={id}
               onClick={() => id === "mytrails" ? setShowMyTrails(true) : nav(id)}
-              style={{ flex:1, padding:"10px 0 8px", display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:"transparent", border:"none", color: activeCatNav === id || (id==="home" && page==="home") ? "#111" : "#ccc", fontSize:7, fontFamily:"'Cormorant Garamond',serif", cursor:"pointer", letterSpacing:"0.1em" }}>
-              <span style={{ fontSize:13 }}>{icon}</span>
-              {id==="mytrails" && saved.length > 0 ? `${label} (${saved.length})` : label}
+              style={{
+                flex: 1, padding: "10px 0 8px",
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+                background: "transparent", border: "none",
+                color: activeCatNav === id || (id === "home" && page === "home") ? "#111" : "#ccc",
+                fontSize: 7, fontFamily: "'Cormorant Garamond',serif",
+                cursor: "pointer", letterSpacing: "0.1em"
+              }}>
+              <span style={{ fontSize: 13 }}>{icon}</span>
+              {id === "mytrails" && saved.length > 0 ? `${label} (${saved.length})` : label}
             </button>
           ))}
         </nav>
