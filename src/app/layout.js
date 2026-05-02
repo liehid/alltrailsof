@@ -28,9 +28,9 @@ export const metadata = {
       'Discover K-Drama filming locations, K-Pop spots, and hidden gems across Korea.',
     images: [
       {
-        url: '/og-image.jpg',   // ← public/og-image.jpg 에 1200×630 이미지 추가 필요
-        width: 1200,
-        height: 630,
+        url: '/og-image.png',
+        width: 1000,
+        height: 525,
         alt: 'All Trails Of – K-Drama & K-Pop Travel',
       },
     ],
@@ -41,7 +41,7 @@ export const metadata = {
     title: 'All Trails Of',
     description:
       'Discover K-Drama filming locations, K-Pop spots, and hidden gems across Korea.',
-    images: ['/og-image.jpg'],
+    images: ['/og-image.png'],
   },
 
   robots: {
