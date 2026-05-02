@@ -1,6 +1,14 @@
 // ── TRAIL DETAIL PAGE (독립 페이지) ─────────────────────────
+import { useSEO } from '../hooks/useSEO';
+
 export default function TrailDetailPage({ trail, onClose, isMobile }) {
   if (!trail) return null;
+
+  useSEO({
+    title: trail.title,
+    description: trail.desc,
+    image: trail.thumb,
+  });
 
   const mapUrl = (trail.lat && trail.lng)
     ? `https://www.google.com/maps?q=${trail.lat},${trail.lng}&z=17`

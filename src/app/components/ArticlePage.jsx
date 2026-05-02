@@ -1,6 +1,14 @@
 // ── ARTICLE PAGE (독립 페이지) ────────────────────────────
+import { useSEO } from '../hooks/useSEO';
+
 export default function ArticlePage({ article, onClose, isMobile }) {
   if (!article) return null;
+
+  useSEO({
+    title: article.title,
+    description: article.sub,
+    image: article.thumb,
+  });
 
   return (
     <div style={{ minHeight: "100vh", background: "#fff" }}>
@@ -97,7 +105,7 @@ export default function ArticlePage({ article, onClose, isMobile }) {
           )
         }
 
-        {/* 유튜브 (article에 youtube 필드 추가 시 대비) */}
+        {/* 유튜브 */}
         {article.youtube && (
           <div style={{ marginTop: 48 }}>
             <div style={{
@@ -119,7 +127,7 @@ export default function ArticlePage({ article, onClose, isMobile }) {
           </div>
         )}
 
-        {/* 구매 링크 (수익화 — article에 buyLinks 추가 시) */}
+        {/* 구매 링크 */}
         {article.buyLinks?.length > 0 && (
           <div style={{ marginTop: 52 }}>
             <div style={{
